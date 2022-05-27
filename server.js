@@ -10,4 +10,6 @@ app.use("/api", (req, res, next) => {
 });
 app.use("/*", express.static(path.join(__dirname + "./client/build")));
 
-app.listen(PORT);
+app.listen(PORT, () => {
+  console.log(`Listening on PORT ${PORT}`);
+});
