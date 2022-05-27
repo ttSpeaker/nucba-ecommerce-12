@@ -8,7 +8,14 @@ const PORT = process.env.PORT || 3000;
 app.use("/api", (req, res, next) => {
   res.send("Hello api");
 });
-app.use("/*", express.static(path.join(__dirname + "./client/build")));
+
+const PATH = path.join(__dirname, "..", "client", "build");
+
+app.use(express.static(PATH));
+
+app.get("/*", function (req, res) {
+  res.sendFile(PATH + "/index.html");
+});
 
 app.listen(PORT, () => {
   console.log(`Listening on PORT ${PORT}`);
