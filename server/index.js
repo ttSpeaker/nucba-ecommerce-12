@@ -13,10 +13,6 @@ const PATH = path.join(__dirname, "..", "client", "build");
 
 app.use(express.static(PATH));
 
-app.get("/*", function (req, res) {
-  res.sendFile(PATH + "/index.html");
-});
-
 app.listen(PORT, () => {
   console.log(`Listening on PORT ${PORT}`);
 });
