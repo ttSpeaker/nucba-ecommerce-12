@@ -1,9 +1,12 @@
-import React from 'react'
+import Navbar from "../../components/Navbar/Navbar";
 
 const Login = () => {
   return (
-    <div>Login</div>
-  )
-}
+    <div>
+      <Navbar />
+      <div>Login</div>
+    </div>
+  );
+};
 
-export default Login
+export default Login;
