@@ -54,7 +54,7 @@ import {
   
             <Flex justifyContent="space-between" alignContent="center">      
               <Box fontSize="2xl" color={useColorModeValue('gray.800', 'white')}>
-                <Box as="span" color={'white'} fontSize="lg" marginRight = "10px">
+                <Box as="span" color={'black'} fontSize="lg" marginRight = "10px">
                   $ 
                 </Box>
                 {price.toFixed(2)}
