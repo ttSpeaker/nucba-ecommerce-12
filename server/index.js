@@ -1,13 +1,12 @@
 const path = require("path");
 const express = require("express");
 
+const productRouter = require("./routes/products");
 const app = express();
 
 const PORT = process.env.PORT || 3000;
 
-app.use("/api", (req, res, next) => {
-  res.send("Hello api");
-});
+app.use("/api/products", productRouter);
 
 const PATH = path.join(__dirname, "..", "client", "build");
 
