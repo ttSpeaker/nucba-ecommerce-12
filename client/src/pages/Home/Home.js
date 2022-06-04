@@ -44,7 +44,7 @@ const Home = () => {
       <Wrap spacing="20px" align="center" shouldWrapChildren="true">
         {data.map( (p, index)  => 
                 <WrapItem>
-                    <ProductCard imageURL = {p.imageURL} name = {p.name} price = {p.price} />
+                    <ProductCard imageURL = {p.imageURL} name = {p.name} price = {p.price} key = {index}/>
                 </WrapItem>
             )}          
       </Wrap>
