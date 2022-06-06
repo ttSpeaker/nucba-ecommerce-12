@@ -2,8 +2,9 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import Admin from "../pages/Admin/Admin";
 import Cart from "../pages/Cart/Cart";
 import Home from "../pages/Home/Home";
-import Login from "../pages/Login/Login";
+import Login from "../pages/Login/LoginContainer";
 import Register from "../pages/Register/RegisterContainer";
+
 
 const Router = () => {
   return (
