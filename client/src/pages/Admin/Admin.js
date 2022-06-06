@@ -1,4 +1,6 @@
 import Navbar from "../../components/Navbar/Navbar";
+import { useForm } from "react-hook-form";
+import { useState } from "react";
 import {
   Box,
   Flex,
@@ -11,12 +13,26 @@ import {
   SimpleGrid,
   useBreakpointValue,
   Icon,
+  FormControl,
+  FormLabel,
 } from "@chakra-ui/react";
+import { FileUpload } from "../../components/FileUpload/FileUpload";
 
-function sendCreateProduct() {
-  console.log("Create Product");
-}
 const Admin = () => {
+  const [title, setTitle] = useState("");
+  const [price, setPrice] = useState("");
+  const {
+    handleSubmit,
+    register,
+    setError,
+    control,
+    formState: { errors, isSubmitting },
+  } = useForm();
+
+  function onSubmit(values) {
+    console.log(title, price);
+    console.log(values);
+  }
   return (
     <div>
       <Navbar />
@@ -51,51 +67,64 @@ const Admin = () => {
                 </Text>
               </Heading>
             </Stack>
-            <Box as={"form"} mt={10}>
-              <Stack spacing={4}>
-                <Input
-                  placeholder="product name"
-                  bg={"gray.100"}
-                  border={0}
-                  color={"gray.500"}
-                  _placeholder={{
-                    color: "gray.500",
+            <Box mt={10}>
+              <form onSubmit={handleSubmit(onSubmit)}>
+                <Stack spacing={4}>
+                  <FormControl isRequired>
+                    <FormLabel>Product title</FormLabel>
+                    <Input
+                      onChange={(event) => setTitle(event.currentTarget.value)}
+                      placeholder="Product title"
+                      name="title"
+                      id="title_id"
+                      type="text"
+                      bg={"gray.100"}
+                      border={0}
+                      color={"gray.500"}
+                      _placeholder={{
+                        color: "gray.500",
+                      }}
+                    />
+                  </FormControl>
+                  <FormControl isRequired>
+                    <FormLabel>Price</FormLabel>
+                    <Input
+                      onChange={(event) => setPrice(event.currentTarget.value)}
+                      placeholder="100.00"
+                      bg={"gray.100"}
+                      name="price"
+                      border={0}
+                      color={"gray.500"}
+                      _placeholder={{
+                        color: "gray.500",
+                      }}
+                    />
+                  </FormControl>
+                  <FileUpload
+                    name="product_picture"
+                    acceptedFileTypes="image/*"
+                    isRequired={true}
+                    placeholder="Select picture"
+                    control={control}
+                  >
+                    Product picture
+                  </FileUpload>
+                </Stack>
+                <Button
+                  type="submit"
+                  fontFamily={"heading"}
+                  mt={8}
+                  w={"full"}
+                  bgGradient="linear(to-r, red.400,pink.400)"
+                  color={"white"}
+                  _hover={{
+                    bgGradient: "linear(to-r, red.400,pink.400)",
+                    boxShadow: "xl",
                   }}
-                />
-                <Input
-                  placeholder="00.00"
-                  bg={"gray.100"}
-                  border={0}
-                  color={"gray.500"}
-                  _placeholder={{
-                    color: "gray.500",
-                  }}
-                />
-                <Input
-                  type="file"
-                  placeholder="select picture"
-                  bg={"gray.100"}
-                  border={0}
-                  color={"gray.500"}
-                  _placeholder={{
-                    color: "gray.500",
-                  }}
-                />
-              </Stack>
-              <Button
-        
-                fontFamily={"heading"}
-                mt={8}
-                w={"full"}
-                bgGradient="linear(to-r, red.400,pink.400)"
-                color={"white"}
-                _hover={{
-                  bgGradient: "linear(to-r, red.400,pink.400)",
-                  boxShadow: "xl",
-                }}
-              >
-                Submit
-              </Button>
+                >
+                  Submit
+                </Button>
+              </form>
             </Box>
             form
           </Stack>

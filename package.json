@@ -51,6 +51,7 @@
     "qs": "^6.10.3",
     "range-parser": "^1.2.1",
     "raw-body": "^2.5.1",
+    "react-hook-form": "^7.31.3",
     "safe-buffer": "^5.2.1",
     "safer-buffer": "^2.1.2",
     "send": "^0.18.0",
