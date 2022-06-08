@@ -1,12 +1,11 @@
 import Navbar from "../../components/Navbar/Navbar";
+import LoginComponent from "./LoginComponent";
 
-const Login = () => {
+export default function Login() {
   return (
     <div>
       <Navbar />
-      <div>Login</div>
+      <LoginComponent />
     </div>
   );
-};
-
-export default Login;
+}
