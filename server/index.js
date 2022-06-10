@@ -1,12 +1,18 @@
+require("dotenv").config();
+
 const path = require("path");
 const express = require("express");
-require('dotenv').config()
+const bodyParser = require("body-parser");
 
+const connectMongoDB = require("./utils/mongoclient").connectMongoDB;
+
+const authRouter = require("./routes/auth");
 const productRouter = require("./routes/products");
+
 const app = express();
+app.use(bodyParser.json());
 
-const PORT = process.env.PORT || 3000;
-
+app.use("/api/auth", authRouter);
 app.use("/api/products", productRouter);
 
 const PATH = path.join(__dirname, "..", "client", "build");
@@ -17,6 +23,12 @@ app.get("/*", function (req, res) {
   res.sendFile(PATH + "/index.html");
 });
 
-app.listen(PORT, () => {
-  console.log(`Listening on PORT ${PORT}`);
-});
+const PORT = process.env.PORT || 3000;
+
+const startServer = async () => {
+  await connectMongoDB();
+  app.listen(PORT, () => {
+    console.log(`Listening on PORT ${PORT}`);
+  });
+};
+startServer();
