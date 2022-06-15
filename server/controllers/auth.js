@@ -39,7 +39,7 @@ const loginUser = async (req, res, next) => {
           role: getUserRole(user),
         },
         process.env.ACCESS_TOKEN_SECRET,
-        { expiresIn: 20 }
+        { expiresIn: 6000 }
       );
       res.json({ accessToken: accessToken });
       return;
