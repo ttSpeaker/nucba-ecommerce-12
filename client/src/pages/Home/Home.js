@@ -2,10 +2,9 @@ import Navbar from "../../components/Navbar/Navbar";
 import ProductCard from "../../components/ProductCard/ProductCard";
 import { Wrap, WrapItem } from "@chakra-ui/react";
 
+
 const Home = () => {
 
-
-    // TRAER EL LISTADO DE PRODUCTOS DE LA DB
   const data = [
     {
       imageURL:
@@ -25,28 +24,31 @@ const Home = () => {
       imageURL:
         "https://cf.shopee.com.ar/file/098b3cf0619ec377a8eb5f32075c0a69_tn",
       name: "Play2",
-      price: 450.50,
+      price: 450.5,
     },
 
     {
-        imageURL:
-          "https://cf.shopee.com.ar/file/6c15685755a3518a9dfee9d6aabf7687_tn",
-        name: "Sega",
-        price: 110.80,
-      },
+      imageURL:
+        "https://cf.shopee.com.ar/file/6c15685755a3518a9dfee9d6aabf7687_tn",
+      name: "Sega",
+      price: 110.8,
+    },
   ];
-
- 
 
   return (
     <div>
       <Navbar />
       <Wrap spacing="20px" align="center" shouldWrapChildren="true">
-        {data.map( (p, index)  => 
-                <WrapItem>
-                    <ProductCard imageURL = {p.imageURL} name = {p.name} price = {p.price} key = {index}/>
-                </WrapItem>
-            )}          
+        {data.map((p, index) => (
+          <WrapItem>
+            <ProductCard
+              imageURL={p.imageURL}
+              name={p.name}
+              price={p.price}
+              key={index}
+            />
+          </WrapItem>
+        ))}
       </Wrap>
     </div>
   );

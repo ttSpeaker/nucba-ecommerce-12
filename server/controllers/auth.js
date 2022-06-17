@@ -16,6 +16,8 @@ const registerUser = async (req, res, next) => {
     }
     const hash = await bcrypt.hash(userBody.password, 10);
     newUser = {
+      firstName: userBody.firstName,
+      lastName: userBody.lastName,
       email: userBody.email,
       password: hash,
     };
@@ -35,6 +37,8 @@ const loginUser = async (req, res, next) => {
     if (result) {
       const accessToken = jwt.sign(
         {
+          firstName: user.firstName,
+          lastName: user.lastName,
           email: user.email,
           role: getUserRole(user),
         },

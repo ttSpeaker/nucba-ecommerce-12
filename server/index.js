@@ -3,6 +3,7 @@ require("dotenv").config();
 const path = require("path");
 const express = require("express");
 const bodyParser = require("body-parser");
+var cors = require("cors");
 
 const connectMongoDB = require("./utils/mongoclient").connectMongoDB;
 
@@ -10,6 +11,8 @@ const authRouter = require("./routes/auth");
 const productRouter = require("./routes/products");
 
 const app = express();
+
+app.use(cors({ origin: "*" }));
 app.use(bodyParser.json());
 
 app.use("/api/auth", authRouter);
