@@ -9,6 +9,7 @@ const connectMongoDB = require("./utils/mongoclient").connectMongoDB;
 
 const authRouter = require("./routes/auth");
 const productRouter = require("./routes/products");
+const cartRouter = require("./routes/cart");
 
 const app = express();
 
@@ -17,6 +18,7 @@ app.use(bodyParser.json());
 
 app.use("/api/auth", authRouter);
 app.use("/api/products", productRouter);
+app.use("/api/cart", cartRouter);
 
 const PATH = path.join(__dirname, "..", "client", "build");
 

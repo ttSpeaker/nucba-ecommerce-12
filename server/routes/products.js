@@ -19,6 +19,7 @@ router.post(
   upload.single("product_picture"),
   createProduct
 );
+
 router.get("/search", searchProducts);
 router.get("/id/:id", getProductById);
 
