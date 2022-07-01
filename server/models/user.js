@@ -1,4 +1,5 @@
 const getDb = require("../utils/mongoclient").getDb;
+const ObjectId = require("mongodb").ObjectId;
 
 const USERS_COLLECTION = "users";
 const createUser = async (newUser) => {
@@ -23,4 +24,25 @@ const findUserByEmail = async (email) => {
   }
 };
 
-module.exports = { createUser, findUserByEmail };
+const findUserById = async (id) => {
+  try {
+    const db = getDb();
+    const result = await db
+      .collection(USERS_COLLECTION)
+      .findOne({ _id: ObjectId(id) });
+    return result;
+  } catch (error) {
+    throw new Error(error);
+  }
+};
+
+const updateUser = async (user) => {
+  try {
+    const db = getDb();
+    await db.collection(USERS_COLLECTION).replaceOne({ _id: user._id }, user);
+    return user;
+  } catch (error) {
+    throw new Error(error);
+  }
+};
+module.exports = { createUser, findUserByEmail, findUserById, updateUser };

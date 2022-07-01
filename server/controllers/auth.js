@@ -29,12 +29,79 @@ const registerUser = async (req, res, next) => {
     return;
   }
 };
+
 const loginUser = async (req, res, next) => {
   const userBody = req.body;
   const user = await searchUserByEmail(userBody.email);
-  if (user) {
-    const result = await bcrypt.compare(userBody.password, user.password);
-    if (result) {
+  try {
+    if (user) {
+      const result = await bcrypt.compare(userBody.password, user.password);
+      if (result) {
+        const accessToken = jwt.sign(
+          {
+            id: user._id,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            email: user.email,
+            role: getUserRole(user),
+          },
+          process.env.ACCESS_TOKEN_SECRET,
+          { expiresIn: 10 }
+        );
+        const refreshToken = jwt.sign(
+          {
+            id: user._id,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            email: user.email,
+            role: getUserRole(user),
+          },
+          process.env.REFRESH_TOKEN_SECRET,
+          { expiresIn: 60 * 60 * 24 * 7 }
+        );
+        if (user.tokens && user.tokens.length > 0) {
+          user.tokens.push(refreshToken);
+        } else {
+          user.tokens = [refreshToken];
+        }
+        await users.updateUser(user);
+        res.json({ accessToken: accessToken, refreshToken: refreshToken });
+        return;
+      }
+    }
+    res.status(403).json({ message: "Email and password not valid" });
+  } catch (error) {
+    throw new Error(error);
+  }
+};
+
+const refreshToken = async (req, res, next) => {
+  const tokenHeader = req.headers["authorization"];
+  if (!tokenHeader) {
+    res.status(401).json({ message: "Missing token: not authorized" });
+    return;
+  }
+  const token = tokenHeader.split(" ")[1];
+  try {
+    //validar el refresh token y la firma
+    const data = await jwt.verify(token, process.env.REFRESH_TOKEN_SECRET);
+
+    //buscar el user en la DB
+    const user = await users.findUserById(data.id);
+
+    //buscar que el token recibido este en la lista de tokens disponibles del usuario (y removerlo, solo se usa una vez)
+    const indexOfToken = user.tokens.indexOf(token);
+    if (indexOfToken === -1) {
+      // SI NO ESTA EL TOKEN EN LA LISTA DE LOS DISPONIBLES, YA NO PUEDE USARSE PARA OBTENER NUEVOS TOKENS
+      res.status(403).json({ message: "Not authorized" });
+      return;
+    }
+
+    const userOldToken = user.tokens.splice(indexOfToken, 1).pop();
+
+    //si el usuario tiene en la lista de tokens disponibles al mismo token que nos envio
+    // este lo pusimos ahi cuando hizo el login, o cuando hizo el refreshToken
+    if (userOldToken) {
       const accessToken = jwt.sign(
         {
           id: user._id,
@@ -44,16 +111,63 @@ const loginUser = async (req, res, next) => {
           role: getUserRole(user),
         },
         process.env.ACCESS_TOKEN_SECRET,
-        { expiresIn: 6000 }
+        { expiresIn: 10 }
       );
-      res.json({ accessToken: accessToken });
-      return;
+      const refreshToken = jwt.sign(
+        {
+          id: user._id,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+          role: getUserRole(user),
+        },
+        process.env.REFRESH_TOKEN_SECRET,
+        { expiresIn: 60 * 60 * 24 * 7 }
+      );
+      user.tokens.push(refreshToken);
+      await users.updateUser(user);
+      res.json({ accessToken: accessToken, refreshToken: refreshToken });
     }
+  } catch (e) {
+    console.log(e);
+    res.status(403).json({ message: "Not authorized", error: e.message });
+    return;
   }
-  res.status(403).json({ message: "Email and password not valid" });
 };
 
-const logoutUser = async (req, res, next) => {};
+const logoutUser = async (req, res, next) => {
+  const tokenHeader = req.headers["authorization"];
+  if (!tokenHeader) {
+    res.status(401).json({ message: "Missing token: not authorized" });
+    return;
+  }
+  const token = tokenHeader.split(" ")[1];
+  try {
+    //validar el refresh token y la firma
+    const data = await jwt.verify(token, process.env.REFRESH_TOKEN_SECRET);
+
+    //buscar el user en la DB
+    const user = await users.findUserById(data.id);
+
+    //buscar que el token recibido este en la lista de tokens disponibles del usuario (y removerlo, solo se usa una vez)
+    const indexOfToken = user.tokens.indexOf(token);
+    if (indexOfToken === -1) {
+      // SI NO ESTA EL TOKEN EN LA LISTA DE LOS DISPONIBLES, YA NO PUEDE USARSE PARA OBTENER NUEVOS TOKENS
+      res.json({ message: "Logged out" });
+      return;
+    }
+
+    user.tokens.splice(indexOfToken, 1).pop();
+
+    await users.updateUser(user);
+    res.json({ message: "Logged out" });
+    
+  } catch (e) {
+    console.log(e);
+    res.status(403).json({ message: "Not authorized", error: e.message });
+    return;
+  }
+};
 
 const searchUserByEmail = async (email) => {
   const user = await users.findUserByEmail(email);
@@ -70,4 +184,4 @@ const getUserRole = (user) => {
   return "none";
 };
 
-module.exports = { registerUser, loginUser, logoutUser };
+module.exports = { registerUser, loginUser, logoutUser, refreshToken };
