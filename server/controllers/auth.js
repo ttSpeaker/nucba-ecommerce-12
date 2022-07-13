@@ -32,49 +32,80 @@ const registerUser = async (req, res, next) => {
 
 const loginUser = async (req, res, next) => {
   const userBody = req.body;
-  const user = await searchUserByEmail(userBody.email);
   try {
-    if (user) {
-      const result = await bcrypt.compare(userBody.password, user.password);
-      if (result) {
-        const accessToken = jwt.sign(
-          {
-            id: user._id,
-            firstName: user.firstName,
-            lastName: user.lastName,
-            email: user.email,
-            role: getUserRole(user),
-          },
-          process.env.ACCESS_TOKEN_SECRET,
-          { expiresIn: 10 }
-        );
-        const refreshToken = jwt.sign(
-          {
-            id: user._id,
-            firstName: user.firstName,
-            lastName: user.lastName,
-            email: user.email,
-            role: getUserRole(user),
-          },
-          process.env.REFRESH_TOKEN_SECRET,
-          { expiresIn: 60 * 60 * 24 * 7 }
-        );
-        if (user.tokens && user.tokens.length > 0) {
-          user.tokens.push(refreshToken);
-        } else {
-          user.tokens = [refreshToken];
-        }
-        await users.updateUser(user);
-        res.json({ accessToken: accessToken, refreshToken: refreshToken });
-        return;
-      }
+    const user = await searchUserByEmail(userBody.email);
+    if (!user) {
+      res.status(500).json({ message: "Could not retrieve user from DB" });
+      return;
     }
-    res.status(403).json({ message: "Email and password not valid" });
   } catch (error) {
-    throw new Error(error);
+    res.status(500).json({ message: "Could not retrieve user from DB", error });
+    return;
+  }
+
+  const isUserPasswordOK = await checkUserPassword(
+    userBody.password,
+    user.password
+  );
+  if (!isUserPasswordOK) {
+    res.status(403).json({ message: "Email and password not valid" });
+    return;
+  }
+
+  const accessToken = signToken(
+    userOldToken,
+    process.env.ACCESS_TOKEN_SECRET,
+    10
+  );
+  const refreshToken = signToken(
+    user,
+    process.env.REFRESH_TOKEN_SECRET,
+    60 * 60 * 24 * 7
+  );
+
+  try {
+    await addTokenToUser(user, refreshToken);
+
+    res.json({ accessToken: accessToken, refreshToken: refreshToken });
+    return;
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+    return;
   }
 };
 
+const signToken = (user, secret, expiration) => {
+  const token = jwt.sign(
+    {
+      id: user._id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      role: getUserRole(user),
+    },
+    secret,
+    { expiresIn: expiration }
+  );
+  return token;
+};
+
+const addTokenToUser = async (user, refreshToken) => {
+  if (user.tokens && user.tokens.length > 0) {
+    user.tokens.push(refreshToken);
+  } else {
+    user.tokens = [refreshToken];
+  }
+  await users.updateUser(user);
+};
+
+const checkUserPassword = async (received, hash) => {
+  try {
+    const result = await bcrypt.compare(received, hash);
+    return result;
+  } catch (error) {
+    return false;
+  }
+};
 const refreshToken = async (req, res, next) => {
   const tokenHeader = req.headers["authorization"];
   if (!tokenHeader) {
@@ -102,30 +133,18 @@ const refreshToken = async (req, res, next) => {
     //si el usuario tiene en la lista de tokens disponibles al mismo token que nos envio
     // este lo pusimos ahi cuando hizo el login, o cuando hizo el refreshToken
     if (userOldToken) {
-      const accessToken = jwt.sign(
-        {
-          id: user._id,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          email: user.email,
-          role: getUserRole(user),
-        },
+      const accessToken = signToken(
+        userOldToken,
         process.env.ACCESS_TOKEN_SECRET,
-        { expiresIn: 10 }
+        10
       );
-      const refreshToken = jwt.sign(
-        {
-          id: user._id,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          email: user.email,
-          role: getUserRole(user),
-        },
+      const refreshToken = signToken(
+        user,
         process.env.REFRESH_TOKEN_SECRET,
-        { expiresIn: 60 * 60 * 24 * 7 }
+        60 * 60 * 24 * 7
       );
-      user.tokens.push(refreshToken);
-      await users.updateUser(user);
+      await addTokenToUser(user, refreshToken);
+
       res.json({ accessToken: accessToken, refreshToken: refreshToken });
     }
   } catch (e) {
@@ -161,7 +180,6 @@ const logoutUser = async (req, res, next) => {
 
     await users.updateUser(user);
     res.json({ message: "Logged out" });
-    
   } catch (e) {
     console.log(e);
     res.status(403).json({ message: "Not authorized", error: e.message });

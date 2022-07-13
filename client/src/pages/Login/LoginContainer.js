@@ -14,9 +14,11 @@ export default function Login() {
       setSubmitting(true);
       const response = await axios.post(BACK_URL + "/auth/login", value);
       setSubmitting(false);
-      
+
       if (response.data && response.data.accessToken) {
+        console.log("Saving acces token");
         localStorage.setItem("accessToken", response.data.accessToken);
+        localStorage.setItem("refreshToken", response.data.refreshToken);
       }
       navigate("/");
     } catch (error) {

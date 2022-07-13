@@ -1,7 +1,9 @@
 import Navbar from "../../components/Navbar/Navbar";
+import { useForm } from "react-hook-form";
+import { BACK_URL } from "../../config/config";
+import sendPostRequest from "../../libs/rest-client";
 import {
   Box,
-  Flex,
   Stack,
   Heading,
   Text,
@@ -9,14 +11,19 @@ import {
   Input,
   Button,
   SimpleGrid,
-  useBreakpointValue,
-  Icon,
 } from "@chakra-ui/react";
 
-function sendCreateProduct() {
-  console.log("Create Product");
-}
 const Admin = () => {
+  const { handleSubmit, register } = useForm();
+
+  const onSubmit = async (values) => {
+    try {
+      sendPostRequest(BACK_URL + "/products", values, { loggedIn: true });
+    } catch (error) {
+      alert("Failed to create product");
+      console.error(error);
+    }
+  };
   return (
     <div>
       <Navbar />
@@ -51,51 +58,60 @@ const Admin = () => {
                 </Text>
               </Heading>
             </Stack>
-            <Box as={"form"} mt={10}>
-              <Stack spacing={4}>
-                <Input
-                  placeholder="product name"
-                  bg={"gray.100"}
-                  border={0}
-                  color={"gray.500"}
-                  _placeholder={{
-                    color: "gray.500",
+            <Box mt={10}>
+              <form onSubmit={handleSubmit(onSubmit)}>
+                <Stack spacing={4}>
+                  <Input
+                    {...register("name", {
+                      required: "This is required",
+                      minLength: {
+                        value: 4,
+                        message: "Minimum length should be 4",
+                      },
+                    })}
+                    placeholder="product name"
+                    bg={"gray.100"}
+                    border={0}
+                    color={"gray.500"}
+                    _placeholder={{
+                      color: "gray.500",
+                    }}
+                  />
+                  <Input
+                    placeholder="00.00"
+                    bg={"gray.100"}
+                    border={0}
+                    color={"gray.500"}
+                    _placeholder={{
+                      color: "gray.500",
+                    }}
+                  />
+                  <Input
+                    type="file"
+                    placeholder="select picture"
+                    bg={"gray.100"}
+                    border={0}
+                    color={"gray.500"}
+                    _placeholder={{
+                      color: "gray.500",
+                    }}
+                  />
+                </Stack>
+                <Button
+                  type="submit"
+                  fontFamily={"heading"}
+                  mt={8}
+                  w={"full"}
+                  bgGradient="linear(to-r, red.400,pink.400)"
+                  color={"white"}
+                  _hover={{
+                    bgGradient: "linear(to-r, red.400,pink.400)",
+                    boxShadow: "xl",
                   }}
-                />
-                <Input
-                  placeholder="00.00"
-                  bg={"gray.100"}
-                  border={0}
-                  color={"gray.500"}
-                  _placeholder={{
-                    color: "gray.500",
-                  }}
-                />
-                <Input
-                  type="file"
-                  placeholder="select picture"
-                  bg={"gray.100"}
-                  border={0}
-                  color={"gray.500"}
-                  _placeholder={{
-                    color: "gray.500",
-                  }}
-                />
-              </Stack>
-              <Button
-        
-                fontFamily={"heading"}
-                mt={8}
-                w={"full"}
-                bgGradient="linear(to-r, red.400,pink.400)"
-                color={"white"}
-                _hover={{
-                  bgGradient: "linear(to-r, red.400,pink.400)",
-                  boxShadow: "xl",
-                }}
-              >
-                Submit
-              </Button>
+                >
+                  Add product
+                </Button>
+              </form>
             </Box>
             form
           </Stack>
