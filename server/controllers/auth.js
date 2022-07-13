@@ -32,8 +32,9 @@ const registerUser = async (req, res, next) => {
 
 const loginUser = async (req, res, next) => {
   const userBody = req.body;
+  let user;
   try {
-    const user = await searchUserByEmail(userBody.email);
+    user = await searchUserByEmail(userBody.email);
     if (!user) {
       res.status(500).json({ message: "Could not retrieve user from DB" });
       return;
@@ -52,11 +53,7 @@ const loginUser = async (req, res, next) => {
     return;
   }
 
-  const accessToken = signToken(
-    userOldToken,
-    process.env.ACCESS_TOKEN_SECRET,
-    10
-  );
+  const accessToken = signToken(user, process.env.ACCESS_TOKEN_SECRET, 10);
   const refreshToken = signToken(
     user,
     process.env.REFRESH_TOKEN_SECRET,
