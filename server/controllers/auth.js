@@ -1,6 +1,7 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-
+const sgMail = require("@sendgrid/mail");
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 const users = require("../models/user");
 
 const registerUser = async (req, res, next) => {
@@ -20,13 +21,37 @@ const registerUser = async (req, res, next) => {
       lastName: userBody.lastName,
       email: userBody.email,
       password: hash,
+      verifyAccountCode: "1234",
     };
+    
     await users.createUser(newUser);
+
+    await sendWelcomeMail(newUser);
     res.json("created user OK");
     return;
   } catch (error) {
     res.status(500).json({ message: error.message });
     return;
+  }
+};
+const sendWelcomeMail = async (user) => {
+  const msg = {
+    to: user.email,
+    from: "js.serruya@gmail.com", // Use the email address or domain you verified above
+    subject: "Registro NUCBA",
+    text: "and easy to do anywhere, even with Node.js",
+    html: `Bienvenido <strong>${user.firstName}!!</strong> verifica tu cuenta haciendo click <a href=localhost:3000/?code=${user.verifyAccountCode}>aca</a> 
+    o entra a este enlace: <link>localhost:3000/?code=${user.verifyAccountCode}</link>`,
+  };
+
+  try {
+    await sgMail.send(msg);
+  } catch (error) {
+    console.error(error);
+
+    if (error.response) {
+      console.error(error.response.body);
+    }
   }
 };
 
